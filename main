@@ -1,0 +1,135 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+const int SIZE = 30;
+char grid[SIZE][SIZE];  
+char letters[26] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+string wordList[50] = {
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+    "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+    "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
+    "Nebraska", "Nevada", "NewHampshire", "NewJersey", "NewMexico", "NewYork", "NorthCarolina", "NorthDakota", "Ohio",
+    "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota", "Tennessee", "Texas", "Utah",
+    "Vermont", "Virginia", "Washington", "WestVirginia", "Wisconsin", "Wyoming"};
+
+
+int dirRow[] = {0, -1, -1, -1, 0, 1, 1, 1};
+int dirCol[] = {1, 1, 0, -1, -1, -1, 0, 1};
+
+void reset(char grid[SIZE][SIZE]) {
+    for (int r = 0; r < SIZE; r++) {
+        for (int c = 0; c < SIZE; c++) {
+            grid[r][c] = '_';  
+        }
+    }
+}
+
+void printBoard(char grid[SIZE][SIZE]) {
+    cout << "  ";
+    for (int i = 0; i < SIZE; i++) {
+        if (i < 10) {
+            cout << " " << i << " ";
+        } else {
+            cout << i << " ";
+        }
+    }
+    cout << endl;  
+
+    for (int i = 0; i < SIZE; i++) {
+        cout << i << " ";
+        for (int j = 0; j < SIZE; j++) {
+            cout << grid[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+bool ifSafe(int startRow, int startCol, string txt, int d) {
+    int length = txt.length();
+    
+    int Row_min[] = {0, length - 1, length - 1, length - 1, 0, 0, 0, 0};
+    int Row_max[] = {SIZE - 1, SIZE - 1, SIZE - 1, SIZE - 1, SIZE - 1, SIZE - length, SIZE - length, SIZE - length};
+    int Col_min[] = {0, 0, 0, length - 1, length - 1, length - 1, 0, 0};
+    int Col_max[] = {SIZE - length, SIZE - length, SIZE - 1, SIZE - 1, SIZE - 1, SIZE - 1, SIZE - 1, SIZE - length};
+
+    if (startRow < Row_min[d] || startRow > Row_max[d] || startCol < Col_min[d] || startCol > Col_max[d]) {
+        return false;
+    }
+
+    for (int i = 0; i < length; i++) {
+        int row = startRow + i * dirRow[d];
+        int col = startCol + i * dirCol[d];
+
+        if (row < 0 || col < 0 || row >= SIZE || col >= SIZE || (grid[row][col] != '_' && grid[row][col] != txt[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+void insertWord(string txt) {
+    int row, col, direction;
+    bool placed = false;
+    do {
+        row = rand() % SIZE;
+        col = rand() % SIZE;
+        direction = rand() % 8;
+        if (ifSafe(row, col, txt, direction)) {
+            for (int i = 0; i < txt.length(); i++) {
+                grid[row][col] = txt[i];
+                row += dirRow[direction];
+                col += dirCol[direction];
+            }
+            placed = true;
+        }
+    } while (!placed);  
+}
+      
+void fillRandom() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (grid[i][j] == '_') {
+                grid[i][j] = letters[rand() % 26];
+            }
+        }
+    }
+}
+
+int main() {
+    srand(time(0));
+
+    ofstream fout;
+    fout.open("wordlist.txt");
+    for (int i = 0; i < 50; i++) {
+        fout << wordList[i] << "\n";
+    }
+    fout.close();
+
+    reset(grid);  
+
+    ifstream fin;
+    fin.open("wordlist.txt");
+    string tempWord;
+    while (fin >> tempWord) {
+        insertWord(tempWord);
+    }
+    fin.close();
+    
+    cout << "Answers:" << endl;
+    printBoard(grid);  
+    
+    fillRandom();
+    
+    cout << endl;
+    cout << "Filled:" << endl;
+    printBoard(grid);  
+}
+
+
+
